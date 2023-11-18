@@ -10,6 +10,8 @@ import urllib.parse
 import collections
 import numpy as np
 from recomendations_recipies import getRecepyIDs, exampleDislikes
+from nltk.corpus import stopwords
+
 
 
 def create_app(test_config=None):
@@ -155,10 +157,12 @@ def create_app(test_config=None):
         # result_string = "Cornish plaice, herb crust, tomato and basil giant bean stew on as fish of the day"
         result_string = result_string.replace(",", "").replace("@", "").replace(".", "")
         result_tokens = set(result_string.split(" ")[:20])
+        s = stopwords.words('english')
+        result_tokens = result_tokens.discard(s)
         df = pd.read_csv("data/prepared_recipes.csv")
         df['names'] = df['name'].astype(str).apply(lambda x: x.split(" "))
         df['no_tokens'] = df['names'].transform(lambda x: len(x))
-        df['matches'] = df['names'].transform(lambda x: len(result_tokens.intersection(set(x))))
+        df['matches'] = df['names'].transform(lambda x: len(result_tokens.intersection(set(x).discard(s))))
         df['ratio'] = df['matches'] / df['no_tokens']
         m = df['ratio'].max()
         recipe = df[df['ratio'] == m]
