@@ -1,22 +1,38 @@
 import pandas as pd
 import numpy as np
 from dataframe_initialization import createMatrix, createRecipyBase
+from ast import literal_eval
 
 
 # in progress
-
+def getRecepy(df, id):
+    return df.iloc[id, :].tolist()
+def getRecepyIDs(df, m_matrix, t_matrix, stored_pictures, stored_ids=[1,2,3,4,5]):
+    df = pd.read_csv("data/prepared_recipes.csv")
+    df["tags_keys"] = df["tags_keys"].apply(literal_eval)
+    df["ingredients_keys"] = df["ingredients_keys"].apply(literal_eval)
+    stored=df.loc[stored_ids]
+    tags = stored['tags_keys'].explode().unique()
+    i_matrix = np.load("data/i_matrix.npy", allow_pickle=True)
+    t_matrix = np.load("data/t_matrix.npy", allow_pickle=True)
+    result = getRecomendations(
+        df,
+        200,
+        tags,
+        stored["ingredients_keys"],
+        [],
+        m_p_min_tags=0.1,
+        m_p_max_ingredients=0.90,
+        m_p_min_ingredients=0.2,
+        i_matrix=i_matrix,
+        t_matrix=t_matrix
+        )
+    return result
+# to get the clostest match, put m_p_max ingridients on 1.0 and use m_number=1
 def getRecomendations(
         df, m_number, m_tags, m_ingredients, m_disliked_ingredients, m_p_min_tags, m_p_max_ingredients, m_p_min_ingredients,i_matrix,
         t_matrix):
-    number_of_recomended_items = 0
-    tried_once = False
-    while(number_of_recomended_items < m_number):
-        # if boundaries are set to strict, widen them
-        if tried_once:
-            m_p_min_tags = m_p_min_tags-1
-            m_p_min_ingredients = m_p_min_ingredients - 1
-            m_p_max_ingredients = m_p_max_ingredients + 0.2
-        tried_once = True
+
 
         # number of recomendations
         number = m_number
@@ -64,21 +80,17 @@ def getRecomendations(
         result[:, 0] = b[:,0]
         # 1st: id 2nd:tag percentage, rest: ingredient percentages
         # filter data
-        cond1 = result[:,1] > p_min_tags
-        cond2 = np.any(np.logical_and(result[:, 2:] > m_p_min_ingredients, result[:, 2:] < p_max_ingredients), axis=1)
-        conds = np.logical_and(cond1, cond2)
-        result = result[conds, :]
-        number_of_recomended_items = result.shape[1]
 
-    result[:, 1] = result[:, 1]*3 + np.sum(result[:, 2:], axis=1)
-    result = result[: m_number, : 2]
-
-    return pd.DataFrame(result, columns=['recipy_id', 'score'])
+        result[:, 1] = result[:, 1]*3 + np.sum(result[:, 2:], axis=1)
+        sorted_indices = np.argsort(result[:,1])
+        result = result[sorted_indices]
+        result = result[: m_number, : 2]
+        return pd.DataFrame(result, columns=['recipy_id', 'score'])
 
 
 
 if __name__ == "__main__":
-    testnumber = 3
+    testnumber = 4
     if testnumber == 1:
         getRecomendations(
             m_number=10,
@@ -135,3 +147,6 @@ if __name__ == "__main__":
             i_matrix=i_matrix,
             t_matrix=t_matrix
         )
+    elif testnumber == 4:
+        df_ids = getRecepyIDs(df=None, m_matrix=None, t_matrix=None, stored_pictures=[])
+        df_ids["id"]
