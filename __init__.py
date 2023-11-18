@@ -108,6 +108,9 @@ def create_app(test_config=None):
     @app.route('/upload', methods=['GET'])
     def addAndMatchRecipe():
         url = urllib.parse.unquote(request.args.get('url'))
+        user_id = urllib.parse.unquote(request.args.get('user_id'))
+        print(user_id)
+        print(url)
         #url = "https://www.instagram.com/p/BTWJYWrj5h_/?igshid=MzRlODBiNWFlZA=="
         tokens = url.split("/")
         post_id = tokens[4]
@@ -127,7 +130,7 @@ def create_app(test_config=None):
         data = res.read()
         j = json.loads(data)
         result_string = j['caption']
-        print(result_string)
+        print(j)
         #result_string = "Cornish plaice, herb crust, tomato and basil giant bean stew on as fish of the day"
         result_string = result_string.replace(",", "").replace("@", "").replace(".", "")
         result_tokens = set(result_string.split(" ")[:20])
@@ -138,6 +141,16 @@ def create_app(test_config=None):
         df['ratio'] = df['matches'] / df['no_tokens']
         m = df['ratio'].max()
         recipe = df[df['ratio'] == m]
+        recipe = str(list(recipe.index)[0])
+        storage_dict = {
+            "user_id": user_id,
+            "caption": result_string,
+            "image_url": j['display_url'],
+            "recipe_match": recipe
+        }
+        df2 = pd.read_csv('data/customer_recipes.csv')
+        df2 = pd.concat([df2, pd.DataFrame(storage_dict)])
+        df2.write_csv('data/customer_recipes.csv')
         return(str(list(recipe.index)[0]))
 
 
