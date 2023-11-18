@@ -113,12 +113,14 @@ def create_app(test_config=None):
     def getMealPlan():
         print("loading meal plan")
         df = pd.read_csv('data/meal_plan.csv')
+        df_recipes = pd.read_csv('data/prepared_recipes.csv')
         user_id = request.args.get('user_id')
         print(df)
         df = df[df['user_id'].astype(str) == user_id]
         recipes = df['meal']
+        recipes_name = df['meal'].map(lambda x: df_recipes.iloc[x]['name'])
         day = df['day']
-        return "|".join(list(map(lambda x: str(x), list(zip(list(day), list(recipes))))))
+        return "|".join(list(map(lambda x: str(x), list(zip(list(day), list(recipes), list(recipes_name))))))
 
     @app.route('/upload', methods=['GET'])
     def addAndMatchRecipe():
