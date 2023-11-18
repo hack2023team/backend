@@ -77,7 +77,6 @@ def getRecomendations(
 
 
 
-
 if __name__ == "__main__":
     testnumber = 3
     if testnumber == 1:
