@@ -1,81 +1,61 @@
 import pandas as pd
+from ast import literal_eval
 import numpy as np
-from dataframe_initialization import createMatrix, createRecipyBase
+from recomendations_recepies import getRecomendations
+
+def createMatrix(df, key_column_name, number_matrix_columns):
+    matrix = np.zeros((len(df), number_matrix_columns + 1), np.int8)
+    for i, row in enumerate(df[key_column_name]):
+        for value in row:
+            matrix[i, value] = 1
+    return matrix
 
 
-# in progress
+def createKeyColumn(df, column_name):
+    # get all ingredients, create keys for them and store keys of all ingredients of one recipy in a new column
+    df[column_name] = df[column_name].apply(literal_eval)
+    all_values = list(set(df[column_name].explode().tolist()))  # list(set([row for row in df]))
+    value_dictionary = {idx + 1: item for idx, item in enumerate(all_values)}
+    rev_value_dictionary = {item: key for key, item in value_dictionary.items()}
 
-def getRecomendations(
-        df, m_number, m_tags, m_ingredients, m_disliked_ingredients, m_p_min_tags, m_p_max_ingredients, m_p_min_ingredients,i_matrix,
-        t_matrix):
-    number_of_recomended_items = 0
-    tried_once = False
-    while(number_of_recomended_items < m_number):
-        # if boundaries are set to strict, widen them
-        if tried_once:
-            m_p_min_tags = m_p_min_tags-1
-            m_p_min_ingredients = m_p_min_ingredients - 1
-            m_p_max_ingredients = m_p_max_ingredients + 0.2
-        tried_once = True
+    def _get_keys(values):
+        return [rev_value_dictionary[val] for val in values]
 
-        # number of recomendations
-        number = m_number
-        # tags to compare with
-        tags = m_tags
-        # matrix with lists of ingredients, for each liked meal one list
-        ingredients = m_ingredients
-        # list of disliked ingredients
-        disliked_ingredients = m_disliked_ingredients
-        # the minimum percentage of tags of a dataset entry that should have to be part of tags, to consider for reccomendation
-        p_min_tags = m_p_min_tags
-        # the maximum percentage of ingridients of a dataset entry that intersect with a combination of ingridients
-        p_max_ingredients = m_p_max_ingredients  # read the dataset using the compression zip
-
-        # create mask of wanted ingredients
-        i_mask = np.zeros((len(m_ingredients), i_matrix.shape[1]), np.int8)
-        for i, row in enumerate(m_ingredients):
-            i_mask[i, row] = 1
-
-        # create mask of wanted tags
-        t_mask = np.zeros((1, t_matrix.shape[1]), np.int8)
-        for i in m_tags:
-            t_mask[0, i] = 1
-
-        # result with one row for every recipy
-        result = np.zeros((i_matrix.shape[0], len(m_ingredients) + 3))
-        # 1st row sum of all ones per recipy
-        result[:, 0] = np.sum(i_matrix, axis=1)  # sum rows together
-        # 4th to nth row partition of common ones
-        for i in range(len(m_ingredients)):
-            copy_matrix = np.logical_and(i_matrix, i_mask[i])
-            result[:, i + 3] = np.sum(copy_matrix, axis=1)
-            result[:, i + 3] = result[:, i + 3] * 1.0 / result[:, 0]
-
-        # 2nd row
-        result[:, 1] = np.sum(t_matrix, axis=1)
-        # 3rd row partition of common tags
-        copy_matrix = np.logical_and(t_matrix, t_mask[0])
-        result[:, 2] = np.sum(copy_matrix, axis=1)
-        result[:, 2] = result[:, 2] * 1.0 / result[:, 1]
-
-        # keep partition describing rows and create id
-        result = result[:,1:]
-        b = np.arange(result.shape[0]).reshape((-1, 1))
-        result[:, 0] = b[:,0]
-        # 1st: id 2nd:tag percentage, rest: ingredient percentages
-        # filter data
-        cond1 = result[:,1] > p_min_tags
-        cond2 = np.any(np.logical_and(result[:, 2:] > m_p_min_ingredients, result[:, 2:] < p_max_ingredients), axis=1)
-        conds = np.logical_and(cond1, cond2)
-        result = result[conds, :]
-        number_of_recomended_items = result.shape[1]
-
-    result[:, 1] = result[:, 1]*3 + np.sum(result[:, 2:], axis=1)
-    result = result[: m_number, : 2]
-
-    return pd.DataFrame(result, columns=['recipy_id', 'score'])
+    df[f"{column_name}_keys"] = df[column_name].apply(_get_keys)
+    number_values = len(all_values)
+    return df, all_values, value_dictionary, number_values
 
 
+def createRecipyBase():
+    # load 1000 rows of csv (restricted due to demonstration purposes)
+    df = pd.read_csv('data\RAW_recipes.csv', nrows=1000)
+
+    # get all ingredients, create keys for them and store keys of all ingredients of one recipy in a new column
+    df, all_ingredients, ingredient_dictionary, ingredient_number = createKeyColumn(df, "ingredients")
+    # do the same for tags
+    df, all_tags, tag_dictionary, tag_number = createKeyColumn(df, "tags")
+
+    '''
+    print(df["ingredients_keys"].head())
+    print(ingredient_dictionary)
+    print(all_ingredients)
+    print(list(df.columns))
+    print(df.dtypes)
+    print(max(df.id))
+    print(min(df.id))
+    '''
+
+    return df, ingredient_dictionary, ingredient_number, tag_dictionary, tag_number
+
+
+# creates matrices, returns dicitonaries and adds key numbers to df
+def intitialize_recipies():
+    dataframe, ingredient_dictionary, number_ingredients, tag_dictionary, tag_number = createRecipyBase()
+    i_matrix = createMatrix(dataframe, "ingredients_keys", number_ingredients)
+    t_matrix = createMatrix(dataframe, "tags_keys", tag_number)
+
+    dataframe.to_csv("data\prepared_recipies.csv")
+    return dataframe, i_matrix, t_matrix, ingredient_dictionary, tag_dictionary
 
 
 if __name__ == "__main__":
@@ -136,3 +116,4 @@ if __name__ == "__main__":
             i_matrix=i_matrix,
             t_matrix=t_matrix
         )
+        print("a")
