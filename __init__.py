@@ -9,6 +9,7 @@ from flask_cors import CORS
 import urllib.parse
 import collections
 import numpy as np
+from recomendations_recipies import getRecepyIDs, exampleDislikes
 
 def create_app(test_config=None):
     # create and configure the app
@@ -100,6 +101,9 @@ def create_app(test_config=None):
 
     @app.route('/getRecommendations', methods=['GET'])
     def getRecommendation():
+        stored_recepies = pd.read_csv("data/customer_recipes.csv")
+        stored_recepies = stored_recepies["recipe_match"]
+        getRecepyIDs(stored_ids=stored_recepies, dislikes_ingredients=exampleDislikes())
         return "|".join(list(map(lambda x: str(x),list(zip(list(np.random.randint(1000, size=40)), list(np.random.randint(1000, size=40)))))))
 
     @app.route('/getRecipe', methods=['GET'])

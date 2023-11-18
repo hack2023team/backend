@@ -2,13 +2,18 @@ import pandas as pd
 import numpy as np
 from dataframe_initialization import createMatrix, createRecipyBase
 from ast import literal_eval
+import  random
 
 
 # in progress
 def getRecepy(df, id):
     return df.iloc[id, :].tolist()
-def getRecepyIDs(df, m_matrix, t_matrix, stored_pictures, stored_ids=[1,2,3,4,5], dislikes_ingredients=[2,3,4,19,23]):
 
+def exampleDislikes():
+    return ["peanuts", "apple", "duck"]
+def storedIdsTuples(stored_ids, dislikes_ingredients, df):
+    return
+def getRecepyIDs(stored_ids=[1,2,3,4,5], dislikes_ingredients=[]):
     df = pd.read_csv("data/prepared_recipes.csv")
     df["tags_keys"] = df["tags_keys"].apply(literal_eval)
     df["ingredients_keys"] = df["ingredients_keys"].apply(literal_eval)
@@ -28,7 +33,14 @@ def getRecepyIDs(df, m_matrix, t_matrix, stored_pictures, stored_ids=[1,2,3,4,5]
         i_matrix=i_matrix,
         t_matrix=t_matrix
         )
-    return result
+    recepy_ids = result
+    store_index = stored_ids
+    for index in range(len(stored_ids)):
+        rand = random.randint(0, index*4)
+        recepy_ids = np.insert(recepy_ids, rand, stored_ids[index])
+        store_index[index] = rand
+    recepy_ids = [(i,i) for i in recepy_ids]
+    return recepy_ids
 # to get the clostest match, put m_p_max ingridients on 1.0 and use m_number=1
 def getRecomendations(
         df, m_number, m_tags, m_ingredients, m_disliked_ingredients, m_p_min_tags, m_p_max_ingredients, m_p_min_ingredients,i_matrix,
@@ -94,10 +106,10 @@ def getRecomendations(
         sorted_indices = np.argsort(result[:,1])
         result = result[sorted_indices]
         if result.shape[0] >= m_number:
-            result = result[: m_number, : 2]
+            result = result[: m_number, : 1]
         else:
-            result = result[:, : 2]
-        return pd.DataFrame(result, columns=['recipy_id', 'score'])
+            result = result[:, : 1]
+        return result
 
 
 
@@ -123,7 +135,8 @@ if __name__ == "__main__":
     elif testnumber == 2:
         createRecipyBase()
     elif testnumber == 3:
-        dataframe, ingredient_dictionary, number_ingredients, tag_dictionary, tag_number = createRecipyBase()
+        dataframe, ingredient_dictionary, nu
+        mber_ingredients, tag_dictionary, tag_number = createRecipyBase()
         i_matrix = createMatrix(dataframe, "ingredients_keys", number_ingredients)
         t_matrix = createMatrix(dataframe, "tags_keys", tag_number)
 
@@ -160,5 +173,4 @@ if __name__ == "__main__":
             t_matrix=t_matrix
         )
     elif testnumber == 4:
-        df_ids = getRecepyIDs(df=None, m_matrix=None, t_matrix=None, stored_pictures=[])
-        df_ids["id"]
+        df_ids = getRecepyIDs()
