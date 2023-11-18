@@ -171,12 +171,5 @@ def create_app(test_config=None):
         }
         df2 = pd.read_csv('data/customer_recipes.csv')
         df2 = pd.concat([df2, pd.DataFrame(storage_dict, index=[0])], ignore_index=True)
-        df2.to_csv('data/customer_recipes.csv')
+        df2.to_csv('data/customer_recipes.csv', index=False)
         return (recipe)
-
-    @app.route('/crawl')
-    def crawlGoogleImages():
-        utils.scrapFirstImageFromGoogle("cat")
-        return 'Crawling!'
-
-    return app
