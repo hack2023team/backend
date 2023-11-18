@@ -5,6 +5,7 @@ from flask import Flask, request, jsonify
 import pandas as pd
 import db
 import utils
+from flask_cors import CORS
 
 def create_app(test_config=None):
     # create and configure the app
@@ -13,6 +14,7 @@ def create_app(test_config=None):
         SECRET_KEY='dev',
         DATABASE=os.path.join(app.instance_path, 'backend.sqlite'),
     )
+    CORS(app)
 
     if test_config is None:
         # load the instance config, if it exists, when not testing
