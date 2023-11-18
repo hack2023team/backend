@@ -134,6 +134,7 @@ def create_app(test_config=None):
             "day":day}
         df = pd.concat([df, pd.DataFrame(storage_dict, index=[0])], ignore_index=True)
         df.to_csv('data/customer_recipes.csv', index=False)
+        return "success"
 
     @app.route('/getMealPlan', methods=['GET'])
     def getMealPlan():
