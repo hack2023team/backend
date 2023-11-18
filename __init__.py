@@ -123,7 +123,7 @@ def create_app(test_config=None):
         df = pd.read_csv('data/meal_plan.csv')
         weekdays = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
         try:
-            last_day = df["day"].iloc(-1)
+            last_day = df["day"].iloc[-1]
             index = weekdays.index(last_day)+1
             day = weekdays[index]
         except:
