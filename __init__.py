@@ -115,6 +115,26 @@ def create_app(test_config=None):
         recipe = df.iloc[int(recipe_id)]
         return recipe.to_json()
 
+    @app.route('/writeMealPlan', methods=['GET'])
+    def writeMealPlan():
+        meal_id = request.args.get("meal")
+        user_id = request.args.get("user_id")
+        print("writing meal plan")
+        df = pd.read_csv('data/meal_plan.csv')
+        weekdays = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
+        try:
+            last_day = df["day"].iloc(-1)
+            index = weekdays.index(last_day)+1
+            day = weekdays[index]
+        except:
+            day = "MON"
+        storage_dict = {
+            "user_id":user_id,
+            "meal":meal_id,
+            "day":day}
+        df = pd.concat([df, pd.DataFrame(storage_dict, index=[0])], ignore_index=True)
+        df.to_csv('data/customer_recipes.csv', index=False)
+
     @app.route('/getMealPlan', methods=['GET'])
     def getMealPlan():
         print("loading meal plan")
