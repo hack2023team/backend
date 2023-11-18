@@ -10,7 +10,8 @@ def getRecepy(df, id):
     return df.iloc[id, :].tolist()
 
 def exampleDislikes():
-    return ["peanuts", "apple", "duck"]
+    return [2,20,3] #'"peanuts", "apple", "duck"]
+
 def storedIdsTuples(stored_ids, stored, dislikes_ingredients, df):
 
     return

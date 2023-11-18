@@ -102,9 +102,9 @@ def create_app(test_config=None):
     def getRecommendation():
         stored_recepies = pd.read_csv("data/customer_recipes.csv")
         stored_recepies = stored_recepies["recipe_match"]
-        getRecepyIDs(stored_ids=stored_recepies, dislikes_ingredients=exampleDislikes())
-        return "|".join(list(map(lambda x: str(x), list(
-            zip(list(np.random.randint(1000, size=40)), list(np.random.randint(1000, size=40)))))))
+        return "|".join(list(map(lambda x: str((int(x[0]), int(x[1]))), getRecepyIDs(stored_ids=stored_recepies, dislikes_ingredients=exampleDislikes()))))
+        # return "|".join(list(map(lambda x: str(x), list(
+        #     zip(list(np.random.randint(1000, size=40)), list(np.random.randint(1000, size=40)))))))
 
     @app.route('/getRecipe', methods=['GET'])
     def getRecipe():
@@ -171,12 +171,5 @@ def create_app(test_config=None):
         }
         df2 = pd.read_csv('data/customer_recipes.csv')
         df2 = pd.concat([df2, pd.DataFrame(storage_dict, index=[0])], ignore_index=True)
-        df2.to_csv('data/customer_recipes.csv')
+        df2.to_csv('data/customer_recipes.csv', index=False)
         return (recipe)
-
-    @app.route('/crawl')
-    def crawlGoogleImages():
-        utils.scrapFirstImageFromGoogle("cat")
-        return 'Crawling!'
-
-    return app
