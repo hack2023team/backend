@@ -11,7 +11,9 @@ def getRecepy(df, id):
 
 def exampleDislikes():
     return [2,20,3] #'"peanuts", "apple", "duck"]
-def storedIdsTuples(stored_ids, dislikes_ingredients, df):
+
+def storedIdsTuples(stored_ids, stored, dislikes_ingredients, df):
+
     return
 def getRecepyIDs(stored_ids=[1,2,3,4,5], dislikes_ingredients=[]):
     df = pd.read_csv("data/prepared_recipes.csv")
