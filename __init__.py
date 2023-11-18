@@ -158,11 +158,11 @@ def create_app(test_config=None):
         result_string = result_string.replace(",", "").replace("@", "").replace(".", "")
         result_tokens = set(result_string.split(" ")[:20])
         s = stopwords.words('english')
-        result_tokens = result_tokens.discard(s)
+        result_tokens = result_tokens.discard(set(s))
         df = pd.read_csv("data/prepared_recipes.csv")
         df['names'] = df['name'].astype(str).apply(lambda x: x.split(" "))
         df['no_tokens'] = df['names'].transform(lambda x: len(x))
-        df['matches'] = df['names'].transform(lambda x: len(result_tokens.intersection(set(x).discard(s))))
+        df['matches'] = df['names'].transform(lambda x: len(result_tokens.intersection(set(x))))
         df['ratio'] = df['matches'] / df['no_tokens']
         m = df['ratio'].max()
         recipe = df[df['ratio'] == m]
