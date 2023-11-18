@@ -133,7 +133,7 @@ def create_app(test_config=None):
             "meal":meal_id,
             "day":day}
         df = pd.concat([df, pd.DataFrame(storage_dict, index=[0])], ignore_index=True)
-        df.to_csv('data/customer_recipes.csv', index=False)
+        df.to_csv('data/meal_plan.csv', index=False)
         return "success"
 
     @app.route('/getMealPlan', methods=['GET'])
