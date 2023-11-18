@@ -49,7 +49,7 @@ def createKeyColumn(df, column_name):
     df[f"{column_name}_keys"] = df[column_name].apply(_get_keys)
     number_values = len(all_values)
     return df, all_values, value_dictionary, number_values
-def createRecipyBase():
+def createRecipeBase():
 
     # load 1000 rows of csv (restricted due to demonstration purposes)
     df = pd.read_csv('data\RAW_recipes.csv', nrows=1000)
@@ -75,7 +75,7 @@ def createRecipyBase():
 
 #creates matrices, returns dicitonaries and adds key numbers to df
 def intitialize_recipies():
-    dataframe, ingredient_dictionary, number_ingredients, tag_dictionary, tag_number = createRecipyBase()
+    dataframe, ingredient_dictionary, number_ingredients, tag_dictionary, tag_number = createRecipeBase()
     i_matrix = createMatrix(dataframe, "ingredients_keys", number_ingredients)
     t_matrix = createMatrix(dataframe, "tags_keys", tag_number)
 
@@ -96,9 +96,9 @@ if __name__ == "__main__":
             m_p_max_ingredients=0.7
         )
     elif testnumber == 2:
-        createRecipyBase()
+        createRecipeBase()
     elif testnumber == 3:
-        dataframe, ingredient_dictionary, number_ingredients, tag_dictionary, tag_number = createRecipyBase()
+        dataframe, ingredient_dictionary, number_ingredients, tag_dictionary, tag_number = createRecipeBase()
         i_matrix = createMatrix(dataframe, "ingredients_keys", number_ingredients)
         t_matrix = createMatrix(dataframe, "tags_keys", tag_number)
         print("a")
