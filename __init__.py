@@ -8,6 +8,7 @@ import db
 from flask_cors import CORS
 import urllib.parse
 import collections
+import numpy as np
 
 def create_app(test_config=None):
     # create and configure the app
@@ -97,9 +98,12 @@ def create_app(test_config=None):
             return utils.dump_to_text(allergies[0])
         return 'No such user added!'
 
+    @app.route('/getRecommendations', methods=['GET'])
+    def getRecommendation():
+        return "|".join(list(map(lambda x: str(x),list(zip(list(np.random.randint(1000, size=40)), list(np.random.randint(1000, size=40)))))))
+
     @app.route('/getRecipe', methods=['GET'])
     def getRecipe():
-        # TODO move data to Database
         df = pd.read_csv('data/prepared_recipes.csv')
         recipe_id = request.args.get('recipe_id')
         recipe = df.iloc[int(recipe_id)]
