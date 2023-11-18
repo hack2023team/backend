@@ -7,7 +7,8 @@ from ast import literal_eval
 # in progress
 def getRecepy(df, id):
     return df.iloc[id, :].tolist()
-def getRecepyIDs(df, m_matrix, t_matrix, stored_pictures, stored_ids=[1,2,3,4,5]):
+def getRecepyIDs(df, m_matrix, t_matrix, stored_pictures, stored_ids=[1,2,3,4,5], dislikes_ingredients=[2,3,4,19,23]):
+
     df = pd.read_csv("data/prepared_recipes.csv")
     df["tags_keys"] = df["tags_keys"].apply(literal_eval)
     df["ingredients_keys"] = df["ingredients_keys"].apply(literal_eval)
@@ -20,7 +21,7 @@ def getRecepyIDs(df, m_matrix, t_matrix, stored_pictures, stored_ids=[1,2,3,4,5]
         200,
         tags,
         stored["ingredients_keys"],
-        [],
+        dislikes_ingredients,
         m_p_min_tags=0.1,
         m_p_max_ingredients=0.90,
         m_p_min_ingredients=0.2,
@@ -46,6 +47,10 @@ def getRecomendations(
         p_min_tags = m_p_min_tags
         # the maximum percentage of ingridients of a dataset entry that intersect with a combination of ingridients
         p_max_ingredients = m_p_max_ingredients  # read the dataset using the compression zip
+
+        #get indexes of rows that contain disliked ingrediens
+        row_indices = np.where(np.any(i_matrix[:, m_disliked_ingredients] == 1, axis=1))[0]
+        indices_to_delete = list(row_indices)
 
         # create mask of wanted ingredients
         i_mask = np.zeros((len(m_ingredients), i_matrix.shape[1]), np.int8)
@@ -80,11 +85,18 @@ def getRecomendations(
         result[:, 0] = b[:,0]
         # 1st: id 2nd:tag percentage, rest: ingredient percentages
         # filter data
+        mask = np.ones(result.shape[0], dtype=bool)
+        mask[indices_to_delete] = False
 
+        # Filter the array to keep only rows not in the list
+        result = result[mask] #todo check if it works
         result[:, 1] = result[:, 1]*3 + np.sum(result[:, 2:], axis=1)
         sorted_indices = np.argsort(result[:,1])
         result = result[sorted_indices]
-        result = result[: m_number, : 2]
+        if result.shape[0] >= m_number:
+            result = result[: m_number, : 2]
+        else:
+            result = result[:, : 2]
         return pd.DataFrame(result, columns=['recipy_id', 'score'])
 
 
