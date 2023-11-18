@@ -75,7 +75,7 @@ def createRecipyBase():
 
 #creates matrices, returns dicitonaries and adds key numbers to df
 def intitialize_recipies():
-    dataframe, ingredient_dictionary, number_ingredients, tag_dictionary, tag_number = createRecepyBase()
+    dataframe, ingredient_dictionary, number_ingredients, tag_dictionary, tag_number = createRecipyBase()
     i_matrix = createMatrix(dataframe, "ingredients_keys", number_ingredients)
     t_matrix = createMatrix(dataframe, "tags_keys", tag_number)
 
