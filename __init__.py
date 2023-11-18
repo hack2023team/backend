@@ -4,8 +4,10 @@ import os
 from flask import Flask, request, jsonify
 import pandas as pd
 import db
-import utils
+# import utils
 from flask_cors import CORS
+import urllib.parse
+import collections
 
 def create_app(test_config=None):
     # create and configure the app
@@ -97,16 +99,51 @@ def create_app(test_config=None):
 
     @app.route('/getRecipe', methods=['GET'])
     def getRecipe():
+        # TODO move data to Database
         df = pd.read_csv('data/prepared_recipes.csv')
         recipe_id = request.args.get('recipe_id')
         recipe = df.iloc[int(recipe_id)]
         return recipe.to_json()
 
+    @app.route('/upload', methods=['GET'])
+    def addAndMatchRecipe():
+        url = urllib.parse.unquote(request.args.get('url'))
+        #url = "https://www.instagram.com/p/BTWJYWrj5h_/?igshid=MzRlODBiNWFlZA=="
+        tokens = url.split("/")
+        post_id = tokens[4]
+        print(post_id)
+        import http.client
 
-    
+        conn = http.client.HTTPSConnection("easy-instagram-service.p.rapidapi.com")
+
+        headers = {
+            'X-RapidAPI-Key': "6cd495ba24msha250124f90cae4bp134cfdjsn42ebe9af169c",
+            'X-RapidAPI-Host': "easy-instagram-service.p.rapidapi.com"
+        }
+
+        conn.request("GET", "/get-post?shortcode=" + post_id, headers=headers)
+
+        res = conn.getresponse()
+        data = res.read()
+        j = json.loads(data)
+        result_string = j['caption']
+        print(result_string)
+        #result_string = "Cornish plaice, herb crust, tomato and basil giant bean stew on as fish of the day"
+        result_string = result_string.replace(",", "").replace("@", "").replace(".", "")
+        result_tokens = set(result_string.split(" ")[:20])
+        df = pd.read_csv("data/prepared_recipes.csv")
+        df['names'] = df['name'].astype(str).apply(lambda x: x.split(" "))
+        df['no_tokens'] = df['names'].transform(lambda x: len(x))
+        df['matches'] = df['names'].transform(lambda x: len(result_tokens.intersection(set(x))))
+        df['ratio'] = df['matches'] / df['no_tokens']
+        m = df['ratio'].max()
+        recipe = df[df['ratio'] == m]
+        return(str(list(recipe.index)[0]))
+
+
     @app.route('/crawl')
     def crawlGoogleImages():
         utils.scrapFirstImageFromGoogle("cat")
         return 'Crawling!'
-    
+
     return app
