@@ -10,6 +10,7 @@ import urllib.parse
 import collections
 import numpy as np
 
+
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
@@ -36,12 +37,11 @@ def create_app(test_config=None):
 
     # TODO: call init recipes
 
-
     # a simple page that says hello
     @app.route('/hello')
     def hello():
         return 'Hello, World!'
-    
+
     @app.route('/addUser')
     def add_user():
         username = "MaxMustermann"
@@ -51,7 +51,7 @@ def create_app(test_config=None):
         database = db.get_db()
         error = None
         if database.execute(
-            'SELECT preferences FROM user WHERE username = ?', (username,)
+                'SELECT preferences FROM user WHERE username = ?', (username,)
         ).fetchone() is not None:
             error = 'User {} is already registered.'.format(username)
 
@@ -63,9 +63,8 @@ def create_app(test_config=None):
             database.commit()
             return 'User {} added!'.format(username)
 
-
         return error
-    
+
     @app.route('/getPreferences', methods=['GET'])
     def getPreferences():
         username = "MaxMustermann"
@@ -81,7 +80,7 @@ def create_app(test_config=None):
         if preferences:
             return utils.dump_to_text(preferences[0])
         return 'No such user added!'
-    
+
     @app.route('/getAllergies', methods=['GET'])
     def getAllergies():
         username = "MaxMustermann"
@@ -100,7 +99,8 @@ def create_app(test_config=None):
 
     @app.route('/getRecommendations', methods=['GET'])
     def getRecommendation():
-        return "|".join(list(map(lambda x: str(x),list(zip(list(np.random.randint(1000, size=40)), list(np.random.randint(1000, size=40)))))))
+        return "|".join(list(map(lambda x: str(x), list(
+            zip(list(np.random.randint(1000, size=40)), list(np.random.randint(1000, size=40)))))))
 
     @app.route('/getRecipe', methods=['GET'])
     def getRecipe():
@@ -109,13 +109,24 @@ def create_app(test_config=None):
         recipe = df.iloc[int(recipe_id)]
         return recipe.to_json()
 
+    @app.route('/getMealPlan', methods=['GET'])
+    def getMealPlan():
+        print("loading meal plan")
+        df = pd.read_csv('data/meal_plan.csv')
+        user_id = request.args.get('user_id')
+        print(df)
+        df = df[df['user_id'].astype(str) == user_id]
+        recipes = df['meal']
+        day = df['day']
+        return "|".join(list(map(lambda x: str(x), list(zip(list(day), list(recipes))))))
+
     @app.route('/upload', methods=['GET'])
     def addAndMatchRecipe():
         url = urllib.parse.unquote(request.args.get('url'))
         user_id = urllib.parse.unquote(request.args.get('user_id'))
         print(user_id)
         print(url)
-        #url = "https://www.instagram.com/p/BTWJYWrj5h_/?igshid=MzRlODBiNWFlZA=="
+        # url = "https://www.instagram.com/p/BTWJYWrj5h_/?igshid=MzRlODBiNWFlZA=="
         tokens = url.split("/")
         post_id = tokens[4]
         print(post_id)
@@ -135,7 +146,7 @@ def create_app(test_config=None):
         j = json.loads(data)
         result_string = j['caption']
         print(j)
-        #result_string = "Cornish plaice, herb crust, tomato and basil giant bean stew on as fish of the day"
+        # result_string = "Cornish plaice, herb crust, tomato and basil giant bean stew on as fish of the day"
         result_string = result_string.replace(",", "").replace("@", "").replace(".", "")
         result_tokens = set(result_string.split(" ")[:20])
         df = pd.read_csv("data/prepared_recipes.csv")
@@ -155,8 +166,7 @@ def create_app(test_config=None):
         df2 = pd.read_csv('data/customer_recipes.csv')
         df2 = pd.concat([df2, pd.DataFrame(storage_dict, index=[0])], ignore_index=True)
         df2.to_csv('data/customer_recipes.csv')
-        return(recipe)
-
+        return (recipe)
 
     @app.route('/crawl')
     def crawlGoogleImages():
