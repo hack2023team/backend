@@ -103,4 +103,10 @@ def create_app(test_config=None):
         return recipe.to_json()
 
 
+    
+    @app.route('/crawl')
+    def crawlGoogleImages():
+        utils.scrapFirstImageFromGoogle("cat")
+        return 'Crawling!'
+    
     return app
