@@ -1,9 +1,10 @@
+import json
 import os
 
 from flask import Flask, request, jsonify
-
-from . import db
-from . import utils
+import pandas as pd
+import db
+import utils
 
 def create_app(test_config=None):
     # create and configure the app
@@ -91,5 +92,13 @@ def create_app(test_config=None):
         if allergies:
             return utils.dump_to_text(allergies[0])
         return 'No such user added!'
-    
+
+    @app.route('/getRecipe', methods=['GET'])
+    def getRecipe():
+        df = pd.read_csv('data/prepared_recipes.csv')
+        recipe_id = request.args.get('recipe_id')
+        recipe = df.iloc[int(recipe_id)]
+        return recipe.to_json()
+
+
     return app
